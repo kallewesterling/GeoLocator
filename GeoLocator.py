@@ -4,7 +4,7 @@ __author__ = 'Kalle Westerling'
 
 #### Settings #################
 
-LOCATION_CACHE_DIRECTORY = './locations/'
+LOCATION_CACHE_DIRECTORY = '/Users/kallewesterling/_twitter_cache/locations/'
 
 ###############################
 
@@ -12,13 +12,8 @@ LOCATION_CACHE_DIRECTORY = './locations/'
 import time, json, re
 from random import randint
 from pathlib import Path
-
-# dependency
 from geopy import Nominatim
-
-# strange dependencies... my own package; needs to be downloaded from GitHub
 import CleanText
-
 
 
 class LocationCache():
