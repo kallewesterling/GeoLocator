@@ -4,7 +4,7 @@ __author__ = 'Kalle Westerling'
 
 #### Settings #################
 
-LOCATION_CACHE_DIRECTORY = '/Users/kallewesterling/_twitter_cache/geolocated-locations/'
+LOCATION_CACHE_DIRECTORY = './locations/'
 
 ###############################
 
