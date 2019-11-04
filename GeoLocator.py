@@ -10,21 +10,12 @@ BLOCK_LOCATIONS = ['a', 'list', 'of', 'locations', 'in', 'dataset', 'that', 'wil
 ###############################
 
 
-import time, json, re, yaml # new dependency
+import time, json, re, yaml
 from random import randint
 from pathlib import Path
 
-# dependency
 from geopy import Nominatim
-
-# strange dependencies... my own package; needs to be downloaded from GitHub
-import CleanText
-
-
-
-
-
-print(f"Running GeoLocator in location {Path(__file__).parent}")
+from CleanText import CleanText
 
 
 class LocationCache():
@@ -56,14 +47,15 @@ class LocationCache():
 
 class Location():
 
-    def __init__(self, location = None, block = [], replacements = {}, replacements_yaml = None):
+    def __init__(self, location = None, block = [], replacements = {}, replacements_yaml = None, clean=True):
         stop_all = False
         
         self.original_location = location
         
-        cleaner = CleanText.CleanText(location)
-        cleaner.digits = False
-        cleaner.clean()
+        if clean:
+          cleaner = CleanText(location)
+          cleaner.digits = False
+          cleaner.clean()
 
         self.log = Log()
         self._set_all_empty()
