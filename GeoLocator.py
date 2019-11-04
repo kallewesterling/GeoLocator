@@ -4,9 +4,6 @@
 LOCATION_CACHE_DIRECTORY = './locations/'
 STRICT = False       # New feature: If True, it will crash when it tries to create empty Location objects. If False, allows for empty Location objects.
 
-# Working on this implementation - but a bit different. Not in settings
-BLOCK_LOCATIONS = ['a', 'list', 'of', 'locations', 'in', 'dataset', 'that', 'will', 'be', 'ignored']
-
 ###############################
 
 
@@ -18,57 +15,31 @@ from geopy import Nominatim
 from CleanText import CleanText
 
 
-class LocationCache():
-
-    def __init__(self, location):
-        self.error = False
-        self.location = location
-        self.cache_directory = LocationCacheDirectory()
-        self.cache_file = self.cache_directory.path / Path(location + ".json")
-        if self.cache_file.exists():
-            self.data = self.load()
-        else:
-            self.data = None
-
-    def load(self):
-        with open(self.cache_file, 'r') as f:
-            data = json.load(f)
-        return(data)
-
-    def _dump(self, data):
-        if data is None or not isinstance(data, dict): raise RuntimeError("Data must not be empty and must be in dictionary format.")
-        try:
-            with open(self.cache_file, 'w+') as f:
-                json.dump(data, f)
-            return(True)
-        except:
-            return(False)
-
-
 class Location():
 
     def __init__(self, location = None, block = [], replacements = {}, replacements_yaml = None, clean=True):
         stop_all = False
-        
+
         self.original_location = location
-        
+
         if clean:
           cleaner = CleanText(location)
           cleaner.digits = False
           cleaner.clean()
+          self.clean_location = cleaner.text
+        else:
+          self.clean_location = location
 
         self.log = Log()
         self._set_all_empty()
         self.error = False
 
-        self.clean_location = cleaner.text
-        
         if len(block):
             self.clean_location = self.clean_location.split()
             self.clean_location = ' '.join([i for i in self.clean_location if i not in block])
             for w in block:
                 if w == self.clean_location: stop_all = True
-        
+
         if replacements_yaml is not None:
             def replace(match):
                 return replacements[match.group(0)]
@@ -77,7 +48,6 @@ class Location():
             if replacements:
                 g = re.compile('(%s)' % '|'.join(replacements.keys()))
             self.clean_location = g.sub(replace, self.clean_location)
-
 
         if len(self.clean_location) and not stop_all:
           self.cache = LocationCache(self.clean_location)
@@ -104,7 +74,8 @@ class Location():
               if STRICT:
                 raise RuntimeError(f"Data is none in location {location}")
               else:
-                self.lat, self.log, self.geolocator, self._type, self._class, self.display_name, self.boundingbox, self.error = None, None, None, None, None, None, None, True
+                self.error = True
+                self.data = {'error': 'location empty'}
         elif stop_all:
             self.error = True
             self.data = {'error': 'location manually blocked'}
@@ -115,10 +86,11 @@ class Location():
             self.error = True
             self.data = {'error': 'location empty'}
 
-    def _set_all_empty(self):
-        self.lat, self.geolocator, self._type, self._class, self.display_name, self.boundingbox = None, None, None, None, None, None
 
-        
+    def _set_all_empty(self):
+        self.lat, self.lng, self.geolocator, self._type, self._class, self.display_name, self.boundingbox = None, None, None, None, None, None, None
+
+
     def get_data(self, geolocator="Nominatim"):
         if geolocator == "Nominatim":
             self.log.log("Geolocator chosen: Nominatim.")
@@ -154,23 +126,34 @@ class Location():
                 data = None
 
         return(data)
-    
-    def sense_lat_lng_from_name(self):
-        g = re.search(r"(-?\d{1,3}\.?\d{0,10}), ?(-?\d{1,3}\.?\d{0,10})", self.original_location)
-        if g is not None:
-            return(g.groups())
+
+
+class LocationCache():
+
+    def __init__(self, location):
+        self.error = False
+        self.location = location
+        self.cache_directory = LocationCacheDirectory()
+        self.cache_file = self.cache_directory.path / Path(location + ".json")
+        if self.cache_file.exists():
+            self.data = self.load()
         else:
-            return(None)
+            self.data = None
 
+    def load(self):
+        with open(self.cache_file, 'r') as f:
+            data = json.load(f)
+        return(data)
 
-class Log():
+    def _dump(self, data):
+        if data is None or not isinstance(data, dict): raise RuntimeError("Data must not be empty and must be in dictionary format.")
+        try:
+            with open(self.cache_file, 'w+') as f:
+                json.dump(data, f)
+            return(True)
+        except:
+            return(False)
 
-    def __init__(self):
-        pass
-
-    def log(self, message = None, level = 0):
-        # if level > 0:
-        print(message)
 
 class LocationCacheDirectory():
 
@@ -198,3 +181,21 @@ class LocationCacheDirectory():
     def _get_locations(self):
         if self._files is None: self._files = self._get_files()
         return([str(x.name).replace(".json", "") for x in self._files])
+
+
+class Log():
+
+    def __init__(self):
+        pass
+
+    def log(self, message = None, level = 0):
+        # if level > 0:
+        print(message)
+
+
+def sense_lat_lng_from_name(text):
+    g = re.search(r"(-?\d{1,3}\.?\d{0,10}), ?(-?\d{1,3}\.?\d{0,10})", text)
+    if g is not None:
+        return(g.groups())
+    else:
+        return(None)
