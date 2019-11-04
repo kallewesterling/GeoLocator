@@ -10,8 +10,13 @@ There are two pip installable packages that GeoLocator depends on:
 
 Both can be installed like so:
 
-``` pip install --upgrade geopy ```
-``` pip install --upgrade yaml ```
+```sh
+pip install --upgrade geopy 
+```
+
+```sh
+pip install --upgrade yaml
+```
 
 In order to cook down your location to savable addresses, I use another package of my own, [CleanText](https://github.com/kallewesterling/CleanText), which you need to add to your library as well. Installation instructions are available in the README in that repository.
 
@@ -174,6 +179,32 @@ There are only a few settings for the program. You will find settings in the fir
 If for some reason you need access to the cache file behind the location, the path is saved in `location.cache.cache_file`.
 
 If you need to load the "live" data from the cache file, you can just call `location.cache.load()` which will return the JSON data as a dictionary, just like the example of `location.data` above.
+
+## "Secret" function
+
+The script also includes a "secret" function, which uses a regular expression that can sense the latitude and longitude information that might be hiding "in plain sight," that is in the very text element itself. Thus, this function can be used to sense any lat, lng information from any string:
+
+```python
+from GeoLocator import *
+
+sense_lat_lng_from_name("ÜT: 37.585869, -122.367340")
+```
+
+If there is a latitude and longitude present in the text provided, the function will provide you with a tuple consisting of two doubles.
+
+```python
+(37.585869, -122.367340)
+```
+
+Otherwise, it will provide you with a `False` value:
+
+```python
+sense_lat_lng_from_name("New York effing city")
+```
+
+```python
+False
+```
 
 ## Future Features
 
