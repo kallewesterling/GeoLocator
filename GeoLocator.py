@@ -44,7 +44,7 @@ class Location():
             def replace(match):
                 return replacements[match.group(0)]
             with open(replacements_yaml) as f:
-                replacements = yaml.load(stream=f)
+                replacements = yaml.load_safe(stream=f)
             if replacements:
                 g = re.compile('(%s)' % '|'.join(replacements.keys()))
             self.clean_location = g.sub(replace, self.clean_location)
